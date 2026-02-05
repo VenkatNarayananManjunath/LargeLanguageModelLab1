@@ -1,0 +1,88 @@
+# ==============================
+# Self-Attention + Multi-Head Attention (Single Cell)
+# ==============================
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+
+# ----------------------
+# Example tokens + embeddings
+# ----------------------
+tokens = ["I", "love", "AI", "models"]
+d_model = 8
+X = np.random.randn(len(tokens), d_model)
+
+# ----------------------
+# Self-Attention
+# ----------------------
+Wq = np.random.randn(d_model, d_model)
+Wk = np.random.randn(d_model, d_model)
+Wv = np.random.randn(d_model, d_model)
+
+Q = X @ Wq
+K = X @ Wk
+V = X @ Wv
+
+scores = Q @ K.T / np.sqrt(d_model)
+
+# softmax
+weights = np.exp(scores) / np.exp(scores).sum(axis=1, keepdims=True)
+
+self_attention_output = weights @ V
+
+print("Self-Attention Output Shape:", self_attention_output.shape)
+
+plt.figure()
+plt.imshow(weights)
+plt.title("Self-Attention Weights")
+plt.xticks(range(len(tokens)), tokens)
+plt.yticks(range(len(tokens)), tokens)
+plt.colorbar()
+plt.show()
+
+# ----------------------
+# Multi-Head Attention
+# ----------------------
+num_heads = 2
+head_dim = d_model // num_heads
+
+head_outputs = []
+head_weights = []
+
+for h in range(num_heads):
+    Wq_h = np.random.randn(d_model, head_dim)
+    Wk_h = np.random.randn(d_model, head_dim)
+    Wv_h = np.random.randn(d_model, head_dim)
+
+    Qh = X @ Wq_h
+    Kh = X @ Wk_h
+    Vh = X @ Wv_h
+
+    scores_h = Qh @ Kh.T / np.sqrt(head_dim)
+    weights_h = np.exp(scores_h) / np.exp(scores_h).sum(axis=1, keepdims=True)
+
+    out_h = weights_h @ Vh
+
+    head_outputs.append(out_h)
+    head_weights.append(weights_h)
+
+# concatenate heads
+concat_heads = np.concatenate(head_outputs, axis=1)
+
+# output projection
+Wo = np.random.randn(d_model, d_model)
+multihead_output = concat_heads @ Wo
+
+print("Multi-Head Output Shape:", multihead_output.shape)
+
+# visualize each head
+for i, w in enumerate(head_weights):
+    plt.figure()
+    plt.imshow(w)
+    plt.title(f"Multi-Head Attention — Head {i+1}")
+    plt.xticks(range(len(tokens)), tokens)
+    plt.yticks(range(len(tokens)), tokens)
+    plt.colorbar()
+    plt.show()
